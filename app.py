@@ -12,15 +12,6 @@ st.markdown(
     """
     <style>
     .stApp { max-width: 720px; margin: 0 auto; }
-    .status-box {
-        background: #1e1e2e; border-radius: 8px; padding: 12px 16px;
-        font-family: monospace; font-size: 13px; color: #cdd6f4;
-        max-height: 300px; overflow-y: auto; margin-top: 8px;
-    }
-    .status-line { margin: 2px 0; }
-    .success { color: #a6e3a1; }
-    .fail { color: #f38ba8; }
-    .info { color: #89b4fa; }
     </style>
     """,
     unsafe_allow_html=True,
@@ -40,27 +31,18 @@ if start and site_url:
     tmp_dir = Path(tempfile.mkdtemp())
 
     progress_bar = st.progress(0, text="Starting ...")
-    log_container = st.empty()
-    log_lines: list[str] = []
+    status_text = st.empty()
 
     def on_progress(stage, current, total, message):
         if stage == "scan":
             progress_bar.progress(0, text="Scanning project page ...")
-            log_lines.append(f'<div class="status-line info">{message}</div>')
         elif stage == "found":
-            log_lines.append(f'<div class="status-line info">{message}</div>')
+            status_text.info(f"Found {total} image(s)")
         elif stage == "error":
-            log_lines.append(f'<div class="status-line fail">{message}</div>')
+            status_text.error(message)
         elif stage == "download":
             pct = current / total if total else 0
             progress_bar.progress(pct, text=f"Downloading {current} / {total}")
-            css = "success" if "Saved" in message else ("fail" if "failed" in message.lower() else "info")
-            log_lines.append(f'<div class="status-line {css}">{message}</div>')
-
-        log_container.markdown(
-            f'<div class="status-box">{"".join(log_lines)}</div>',
-            unsafe_allow_html=True,
-        )
 
     saved, total, project_name = scrape_project(site_url, tmp_dir, on_progress=on_progress)
 
@@ -76,10 +58,10 @@ if start and site_url:
                     zf.write(img_file, f"{project_name}/{img_file.name}")
         zip_buf.seek(0)
 
-        st.success(f"Hurraahahhh :^ {saved}/{total} images ready!")
+        status_text.success(f"Hurraahahhh :^ {saved}/{total} images downloaded!")
 
         st.download_button(
-            label=f"Download ZIP ({saved} images)",
+            label=f"Save ZIP ({saved} images)",
             data=zip_buf,
             file_name=f"{project_name}.zip",
             mime="application/zip",
