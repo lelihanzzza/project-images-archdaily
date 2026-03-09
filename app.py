@@ -2,7 +2,7 @@ import streamlit as st
 from pathlib import Path
 from bot import scrape_project, project_name_from_url
 
-DEFAULT_SAVE_DIR = "C:/Users/lelih/OneDrive/Documents/Projects/kimyu/Images"
+DEFAULT_SAVE_DIR = ""
 
 st.set_page_config(page_title="Here you go babe <3", layout="centered")
 
